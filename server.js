@@ -46,7 +46,17 @@ function getPlayerList(array) {
 
 io.on("connection", socket => {
 
-    socket.on('connected', (username) => {
+    socket.on('checkUsername', username => {
+        let flag = 0
+        let result = true
+        Object.keys(clientList).forEach((value, index) => {
+            if (clientList[value].username == username) flag += 1
+        })
+        if (flag > 0) result = false
+        io.to(socket.id).emit('checkUsernameResult', result)
+    })
+
+    socket.on('connected', username => {
         console.log(`User Connected`)
         clientList[socket.id] = {
             id: socket.id, 
@@ -59,8 +69,8 @@ io.on("connection", socket => {
     })
 
     socket.on('pencet', () => {
-        const score = clientList[socket.id].score + 1
-        clientList[socket.id].score = score
+        const score = clientList[socket.id]?.score + 1
+        if (clientList[socket.id]?.score !== undefined) clientList[socket.id].score = score
         io.to(socket.id).emit('cokotScore', score)
         io.emit("userUpdate", getPlayerList(clientList))
     })
